@@ -1,0 +1,87 @@
+buildscript {
+	ext.kotlin_version = '1.2.41'
+
+	repositories {
+		mavenCentral()
+	}
+
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+	}
+}
+//plugins {
+//	id "org.jetbrains.kotlin.jvm" version "1.2.41"
+//	id 'groovy'
+//}
+apply plugin: 'kotlin'
+apply plugin: 'groovy'
+
+compileGroovy {
+	dependsOn tasks.getByPath('compileKotlin')
+	classpath += files(compileKotlin.destinationDir)
+}
+repositories {
+	mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+	compile(
+			'org.codehaus.groovy:groovy-all:2.4.15',
+			'com.amazonaws:aws-lambda-java-core:1.2.0',
+			'com.amazonaws:aws-lambda-java-log4j2:1.1.0',
+			'com.amazonaws:aws-lambda-java-events:2.1.0'
+	)
+	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+	compile 'com.amazonaws:aws-java-sdk:1.11.313'
+	testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+	testCompile 'cglib:cglib:3.1'
+}
+
+// Task for building the zip file for upload
+task buildZip(type: Zip) {
+	// Using the Zip API from gradle to build a zip file of all the dependencies
+	//
+	// The path to this zip file can be set in the serverless.yml file for the
+	// package/artifact setting for deployment to the S3 bucket
+	//
+	// Link: https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Zip.html
+
+	// set the base name of the zip file
+	baseName = "cloud-buddy"
+	from compileKotlin
+	from compileGroovy
+	from processResources
+	into('lib') {
+		from configurations.runtime
+	}
+}
+
+build.dependsOn buildZip
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '4.7'
+}
+
+test {
+	testLogging {
+		// Make sure output from
+		// standard out or error is shown
+		// in Gradle output.
+		showStandardStreams = false
+
+		// Or we use events method:
+		// events 'standard_out', 'standard_error'
+
+		// Or set property events:
+		// events = ['standard_out', 'standard_error']
+
+		// Instead of string values we can
+		// use enum values:
+		// events org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
+		//        org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+	}
+}

@@ -1,0 +1,13 @@
+#Project
+.gradle
+.serverless
+out/
+target
+build
+workspace.xml
+tasks.xml
+.idea/
+gradle.properties
+gradle/wrapper/gradle-wrapper.properties
+*.iml
+user-settings.gradle
