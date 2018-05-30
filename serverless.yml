@@ -80,7 +80,7 @@ functions:
                 - ":failed-alerts"
           topicName: failed-alerts
     environment:
-      TARGET_S3_BUCKET: ${file(./config.dev.yml):s3_failed_alerts_bucket}
+      TARGET_S3_BUCKET: ${file(./config.yml):s3_failed_alerts_bucket}
   securityfailures:
     handler: com.cloudsecurity.lambda.LookSecurityFailures
     timeout: 30
@@ -96,8 +96,8 @@ functions:
                 - ":needs-attention"
           topicName: needs-attention
     environment:
-      TARGET_ACCOUNT_ROLE: ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
-      SIMULATION_CALLER_ARN: ${file(./config.dev.yml):SIMULATION_CALLER_ARN}
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
+      SIMULATION_CALLER_ARN: ${file(./config.yml):SIMULATION_CALLER_ARN}
   executeRule:
     handler: com.cloudsecurity.lambda.ondemand.ExecuteRule
     timeout: 30
@@ -112,8 +112,8 @@ functions:
               querystrings:
                 resource: true
     environment:
-      TARGET_ACCOUNT_ROLE: ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
-      SIMULATION_CALLER_ARN: ${file(./config.dev.yml):SIMULATION_CALLER_ARN}
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
+      SIMULATION_CALLER_ARN: ${file(./config.yml):SIMULATION_CALLER_ARN}
   executeDSLRule:
     handler: com.cloudsecurity.lambda.ondemand.ExecuteDSLRule
     timeout: 30
@@ -128,8 +128,8 @@ functions:
               querystrings:
                 resource: true
     environment:
-      TARGET_ACCOUNT_ROLE: ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
-      SIMULATION_CALLER_ARN: ${file(./config.dev.yml):SIMULATION_CALLER_ARN}
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
+      SIMULATION_CALLER_ARN: ${file(./config.yml):SIMULATION_CALLER_ARN}
 
 
 # you can add CloudFormation resource templates here
@@ -157,7 +157,7 @@ resources:
                   Action:
                     - "sts:AssumeRole"
                   Resource:
-                    - ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
+                    - "arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole"
           - PolicyName: writeFailedAlerts
             PolicyDocument:
               Statement:
@@ -165,12 +165,12 @@ resources:
                   Action:
                     - "s3:*"
                   Resource:
-                    -  "arn:aws:s3:::${file(./config.dev.yml):s3_failed_alerts_bucket}"
+                    -  "arn:aws:s3:::${file(./config.yml):s3_failed_alerts_bucket}"
                 - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
                   Action:
                     - "s3:*"
                   Resource:
-                    -  "arn:aws:s3:::${file(./config.dev.yml):s3_failed_alerts_bucket}/*"
+                    -  "arn:aws:s3:::${file(./config.yml):s3_failed_alerts_bucket}/*"
 
 #    NewResource:
 #      Type: AWS::S3::Bucket
