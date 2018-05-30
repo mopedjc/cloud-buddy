@@ -1,0 +1,309 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Final Touches Cloud Buddy application",
+  "Parameters": {
+    "CloudTrailsBucketParam": {
+      "Type": "String",
+      "Default": "foo-bucket",
+      "Description": "cloudTrailsBucket in config.yml"
+    },
+    "AccountIdParam": {
+      "Type": "String",
+      "Default": "123",
+      "Description": "ACCOUNT_ID in config.yml"
+    },
+    "BuddyEmailParam": {
+      "Type": "String",
+      "Default": "123",
+      "Description": "buddyEmail in config.yml"
+    }
+  },
+  "Resources": {
+    "SubscribeEmailToFailedAlerts": {
+      "Type": "AWS::SNS::Subscription",
+      "Properties": {
+        "Endpoint": {
+          "Ref": "BuddyEmailParam"
+        },
+        "Protocol": "Email",
+        "TopicArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:sns:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":failed-alerts"
+            ]
+          ]
+        }
+      }
+    },
+    "SubscribeEmailToNeedsAttentionForDebug": {
+      "Type": "AWS::SNS::Subscription",
+      "Properties": {
+        "Endpoint": {
+          "Ref": "BuddyEmailParam"
+        },
+        "Protocol": "Email",
+        "TopicArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:sns:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":needs-attention"
+            ]
+          ]
+        }
+      }
+    },
+    "AllowPublishNeedsAttentionPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "Topics": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:sns:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":",
+                {
+                  "Ref": "AWS::AccountId"
+                },
+                ":needs-attention"
+              ]
+            ]
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Id": "__default_policy_ID",
+          "Statement": [
+            {
+              "Sid": "__default_statement_ID",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Action": [
+                "SNS:Publish",
+                "SNS:RemovePermission",
+                "SNS:SetTopicAttributes",
+                "SNS:DeleteTopic",
+                "SNS:ListSubscriptionsByTopic",
+                "SNS:GetTopicAttributes",
+                "SNS:Receive",
+                "SNS:AddPermission",
+                "SNS:Subscribe"
+              ],
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:sns:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":needs-attention"
+                  ]
+                ]
+              },
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceOwner": {
+                    "Ref": "AWS::AccountId"
+                  }
+                }
+              }
+            },
+            {
+              "Sid": "__AWSEvents_cloud-buddy-rules_Id",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sns:Publish",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:sns:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":needs-attention"
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CloudBuddySimulationUser": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "UserName": "CloudBuddySimulationUser"
+      }
+    },
+    "CloudTrailsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "CloudTrailsBucketParam"
+        }
+      }
+    },
+    "CloudTrailsBucketPolicy": {
+      "DependsOn": "CloudTrailsBucket",
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "CloudTrailsBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "AWSCloudTrailAclCheck20150319",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+              },
+              "Action": "s3:GetBucketAcl",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "CloudTrailsBucketParam"
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "Sid": "AWSCloudTrailWrite20150319",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+              },
+              "Action": "s3:PutObject",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "CloudTrailsBucketParam"
+                    },
+                    "/AWSLogs/",
+                    {
+                      "Ref": "AccountIdParam"
+                    },
+                    "/*"
+                  ]
+                ]
+              },
+              "Condition": {
+                "StringEquals": {
+                  "s3:x-amz-acl": "bucket-owner-full-control"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CloudBuddyRules": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "State": "ENABLED",
+        "EventPattern": {
+          "source": [
+            "aws.ec2",
+            "aws.iam",
+            "aws.s3"
+          ],
+          "detail-type": [
+            "AWS API Call via CloudTrail"
+          ],
+          "detail": {
+            "eventSource": [
+              "iam.amazonaws.com",
+              "s3.amazonaws.com",
+              "ec2.amazonaws.com"
+            ],
+            "eventName": [
+              "CreateUser",
+              "AttachUserPolicy",
+              "CreateAccessKey",
+              "CreateLoginProfile",
+              "DeleteBucketCors",
+              "DeleteBucketLifecycle",
+              "DeleteBucketPolicy",
+              "DeleteBucketReplication",
+              "DeleteBucketTagging",
+              "DeleteBucketWebsite",
+              "PutBucketAcl",
+              "PutBucketCors",
+              "PutBucketLifecycle",
+              "PutBucketPolicy",
+              "PutBucketLogging",
+              "PutBucketNotification",
+              "PutBucketReplication",
+              "PutBucketTagging",
+              "PutBucketRequestPayment",
+              "PutBucketVersioning",
+              "PutBucketWebsite"
+            ]
+          }
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:sns:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":needs-attention"
+                ]
+              ]
+            },
+            "Id": "TargetSNS"
+          }
+        ]
+      }
+    }
+  }
+}

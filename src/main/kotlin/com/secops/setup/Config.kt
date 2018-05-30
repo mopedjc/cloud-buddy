@@ -2,9 +2,9 @@ package com.secops.setup
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class Config(@JsonProperty("BUDDY_ACCOUNT_ID") val buddyAccountId: String,
-                  @JsonProperty("ACCOUNT_NAME") val accountName: String,
-                  val buddyEmail: String,
-                  val s3_failed_alerts_bucket: String,
-                  @JsonProperty("ACCOUNT_ID") val accountId: String,
-                  val SIMULATION_CALLER_ARN: String)
+data class Config(@JsonProperty("BUDDY_ACCOUNT_ID") var buddyAccountId: Long?,
+                  @JsonProperty("ACCOUNT_ALIAS") var accountAlias: String?,
+                  var buddyEmail: String,
+                  val cloudtrailsBucket: String,
+                  @JsonProperty("s3_failed_alerts_bucket") val s3FailedAlertsBucket: String,
+                  @JsonProperty("ACCOUNT_ID") var accountId: Long?)

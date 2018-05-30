@@ -22,7 +22,7 @@ class S3SimulationTrait {
 			policyRequest.setResourcePolicy(bucketPolicy.policyText)
 			policyRequest.setActionNames(actionNames)
 			policyRequest.setPolicyInputList([iamPolicy])
-			String callerArn = environmentVariables.getenv('SIMULATION_CALLER_ARN')
+			String callerArn = "arn:aws:iam::${environmentVariables.getenv('BUDDY_ACCOUNT_ID')}:user/CloudBuddySimulationUser"
 			policyRequest.setCallerArn(callerArn)
 			SimulateCustomPolicyResult result = identityManagementClient.simulateCustomPolicy(policyRequest)
 

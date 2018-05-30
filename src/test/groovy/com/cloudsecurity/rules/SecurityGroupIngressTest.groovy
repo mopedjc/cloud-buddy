@@ -22,9 +22,9 @@ class SecurityGroupIngressTest extends Specification {
     "eventVersion": "1.05",
     "userIdentity": {
         "type": "Root",
-        "principalId": "864374811737",
-        "arn": "arn:aws:iam::864374811737:root",
-        "accountId": "864374811737",
+        "principalId": "123456789012",
+        "arn": "arn:aws:iam::123456789012:root",
+        "accountId": "123456789012",
         "accessKeyId": "ASIAIFWOS6PE4CPQLRKQ",
         "sessionContext": {
             "attributes": {
@@ -70,6 +70,6 @@ class SecurityGroupIngressTest extends Specification {
     "requestID": "d2b051aa-7358-4430-b4b1-96db078daad6",
     "eventID": "efae44db-44ac-4084-b15b-8828490c21c9",
     "eventType": "AwsApiCall",
-    "recipientAccountId": "864374811737"
+    "recipientAccountId": "123456789012"
 }"""
 }

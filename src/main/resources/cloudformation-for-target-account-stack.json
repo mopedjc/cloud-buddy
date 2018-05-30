@@ -1,0 +1,212 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for the target account Cloud Buddy application",
+  "Parameters": {
+    "BuddyAccountId": {
+      "Type": "String",
+      "Default": "123",
+      "Description": "BUDDY_ACCOUNT_ID in config.yml"
+    },
+    "cloudtrailsBucket": {
+      "Type": "String",
+      "Default": "defaultBucket",
+      "Description": "cloudtrailsBucket in config.yml"
+    }
+  },
+  "Resources": {
+    "ForCloudBuddyCloudTrail": {
+      "Type": "AWS::CloudTrail::Trail",
+      "Properties": {
+        "CloudWatchLogsLogGroupArn": {
+          "Fn::GetAtt": ["ForCloudBuddyWriteOnlyLogGroup", "Arn"]
+        },
+        "CloudWatchLogsRoleArn": {
+          "Fn::GetAtt" : ["ForCloudBuddyCloudTrailRole", "Arn"]
+        },
+        "IncludeGlobalServiceEvents": true,
+        "EnableLogFileValidation": true,
+        "EventSelectors": [{ "IncludeManagementEvents" : true, "ReadWriteType": "WriteOnly"}],
+        "IsLogging": true,
+        "IsMultiRegionTrail": true,
+        "S3BucketName": { "Ref" : "cloudtrailsBucket"},
+        "TrailName": "ForCloudBuddyCloudTrail"
+      }
+    },
+    "ForCloudBuddyWriteOnlyLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "CloudTrail/ForCloudBuddyWriteOnlyLogGroup",
+        "RetentionInDays": 30
+      }
+    },
+    "ForCloudBuddyCloudTrailRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {}
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "MyInlinePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ],
+        "RoleName": "ForCloudBuddyCloudTrailRole"
+      }
+    },
+    "ForCloudBuddySecurityAuditRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:iam:",
+                      ":",
+                      {
+                        "Ref": "BuddyAccountId"
+                      },
+                      ":root"
+                    ]
+                  ]
+                }
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {}
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/SecurityAudit"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "MyInlinePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:*",
+                    "s3:ListAllMyBuckets",
+                    "logs:*",
+                    "s3:HeadBucket",
+                    "s3:ListObjects"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Sid": "VisualEditor1",
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucketByTags",
+                    "s3:GetLifecycleConfiguration",
+                    "s3:GetBucketTagging",
+                    "s3:GetInventoryConfiguration",
+                    "s3:GetObjectVersionTagging",
+                    "s3:ListBucketVersions",
+                    "s3:GetBucketLogging",
+                    "s3:ListBucket",
+                    "s3:GetAccelerateConfiguration",
+                    "s3:GetBucketPolicy",
+                    "s3:GetObjectVersionTorrent",
+                    "s3:GetObjectAcl",
+                    "s3:GetBucketRequestPayment",
+                    "s3:GetObjectVersionAcl",
+                    "s3:GetObjectTagging",
+                    "s3:GetMetricsConfiguration",
+                    "s3:GetIpConfiguration",
+                    "s3:ListBucketMultipartUploads",
+                    "s3:GetBucketWebsite",
+                    "s3:GetBucketVersioning",
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketNotification",
+                    "s3:GetReplicationConfiguration",
+                    "s3:ListMultipartUploadParts",
+                    "s3:GetObject",
+                    "s3:GetObjectTorrent",
+                    "s3:GetBucketCORS",
+                    "s3:GetAnalyticsConfiguration",
+                    "s3:GetObjectVersionForReplication",
+                    "s3:GetBucketLocation",
+                    "s3:GetObjectVersion"
+                  ],
+                  "Resource": [
+                    "arn:aws:s3:::*/*"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "RoleName": "ForCloudBuddySecurityAuditRole"
+      }
+    },
+    "CloudBuddyRules": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "State": "ENABLED",
+        "EventPattern": {
+          "source": [
+            "aws.ec2",
+            "aws.iam",
+            "aws.s3"
+          ],
+          "detail-type": [
+            "AWS API Call via CloudTrail"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:events",
+                  ":us-east-1",
+                  ":",
+                  {
+                    "Ref": "BuddyAccountId"
+                  },
+                  ":event-bus/default"
+                ]
+              ]
+            },
+            "Id": "TargetBuddyAccountDefaultEventBus"
+          }
+        ]
+      }
+    }
+  }
+}
