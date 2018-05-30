@@ -6,23 +6,59 @@ import com.amazonaws.services.identitymanagement.model.CreateRoleRequest
 import com.amazonaws.services.identitymanagement.model.PutRolePolicyRequest
 import com.amazonaws.services.organizations.model.CreateAccountRequest
 import com.amazonaws.services.organizations.model.DescribeCreateAccountStatusRequest
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
 fun main(args : Array<String>) {
     //createAccount()
 
-   // createRole()
-    createSecurityRole()
+    //createRole()
+    createSecurityRoleInTargetAccount()
+
 }
 
-fun createSecurityRole() {
+/**
+ * BUDDY_ACCOUNT_ID in config.dev.yml
+ */
+fun getBuddyAccountId(): String {
+    val config = loadFromFile(Paths.get("config.dev.yml"))
+    return config.buddyAccountId
+}
+
+fun getBuddyAccountName(): String {
+    val config = loadFromFile(Paths.get("config.dev.yml"))
+    return "${config.accountName}secops"
+}
+
+
+fun getBuddyEmail() : String {
+    val config = loadFromFile(Paths.get("config.dev.yml"))
+    return config.buddyEmail
+}
+
+fun loadFromFile(path: Path): Config {
+    val mapper = ObjectMapper(YAMLFactory()) // Enable YAML parsing
+    mapper.registerModule(KotlinModule()) // Enable Kotlin support
+
+    return Files.newBufferedReader(path).use {
+        mapper.readValue(it, Config::class.java)
+    }
+}
+
+
+fun createSecurityRoleInTargetAccount() {
     val assumePolicy = """{
   "Version": "2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::406431865824:root"
+        "AWS": "arn:aws:iam::${getBuddyAccountId()}:root"
       },
       "Action": "sts:AssumeRole",
       "Condition": {}
@@ -30,8 +66,7 @@ fun createSecurityRole() {
   ]
 }"""
     val client = AmazonIdentityManagementClientBuilder.standard().build()
-    val roleName = "MySecurityAuditRole"
-  //  val roleName = "jcazure2SecurityAudit"
+    val roleName = "ForCloudBuddySecurityAuditRole"
     val createRoleResult = client.createRole(CreateRoleRequest().withRoleName(roleName)
             .withAssumeRolePolicyDocument(assumePolicy))
 
@@ -99,30 +134,13 @@ fun createSecurityRole() {
 }
 
 
-fun createRole() {
-    val assumePolicy = """{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::406431865824:root"
-      },
-      "Action": "sts:AssumeRole",
-      "Condition": {}
-    }
-  ]
-}"""
-    val client = AmazonIdentityManagementClientBuilder.standard().build()
-    client.createRole(CreateRoleRequest().withRoleName("Assumejcazure2secops")
-            .withAssumeRolePolicyDocument(assumePolicy))
-}
+
 
 fun createAccount() {
     val client = com.amazonaws.services.organizations.AWSOrganizationsClientBuilder.standard().build()
     val result = client.createAccount(CreateAccountRequest()
-            .withAccountName("jcazure2secops3")
-            .withEmail("jcazure2secops3@gmail.com")
+            .withAccountName(getBuddyAccountName())
+            .withEmail(getBuddyEmail())
             .withRoleName("OrganizationAdminRole"))
     var finished = false
     while (!finished) {
@@ -132,4 +150,27 @@ fun createAccount() {
         }
     }
     println("Finished, creating account ${result.createAccountStatus.accountName}")
+}
+
+
+/**
+ * Not sure if we need this, as serverless handles this
+ */
+fun createBuddyRole() {
+    val assumePolicy = """{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${getBuddyAccountId()}:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {}
+    }
+  ]
+}"""
+    val client = AmazonIdentityManagementClientBuilder.standard().build()
+    client.createRole(CreateRoleRequest().withRoleName("Assume${getBuddyAccountName()}")
+            .withAssumeRolePolicyDocument(assumePolicy))
 }

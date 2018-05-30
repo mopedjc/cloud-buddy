@@ -96,7 +96,7 @@ functions:
                 - ":needs-attention"
           topicName: needs-attention
     environment:
-      TARGET_ACCOUNT_ROLE: ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.dev.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
       SIMULATION_CALLER_ARN: ${file(./config.dev.yml):SIMULATION_CALLER_ARN}
   executeRule:
     handler: com.cloudsecurity.lambda.ondemand.ExecuteRule
@@ -112,7 +112,7 @@ functions:
               querystrings:
                 resource: true
     environment:
-      TARGET_ACCOUNT_ROLE: ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.dev.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
       SIMULATION_CALLER_ARN: ${file(./config.dev.yml):SIMULATION_CALLER_ARN}
   executeDSLRule:
     handler: com.cloudsecurity.lambda.ondemand.ExecuteDSLRule
@@ -128,7 +128,7 @@ functions:
               querystrings:
                 resource: true
     environment:
-      TARGET_ACCOUNT_ROLE: ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.dev.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
       SIMULATION_CALLER_ARN: ${file(./config.dev.yml):SIMULATION_CALLER_ARN}
 
 
@@ -157,7 +157,7 @@ resources:
                   Action:
                     - "sts:AssumeRole"
                   Resource:
-                    - ${file(./config.dev.yml):TARGET_ACCOUNT_ROLE}
+                    - "arn:aws:iam::${file(./config.dev.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole"
           - PolicyName: writeFailedAlerts
             PolicyDocument:
               Statement:
