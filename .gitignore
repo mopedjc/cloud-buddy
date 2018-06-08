@@ -11,3 +11,6 @@ gradle.properties
 gradle/wrapper/gradle-wrapper.properties
 *.iml
 user-settings.gradle
+config.dev.yml
+config.yml
+parameters.yml
