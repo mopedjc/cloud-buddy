@@ -1,6 +1,6 @@
 package scripts
 
-import com.secops.util.EnvironmentVariables
+import com.cloudsecurity.dsl.util.EnvironmentVariables
 
 
 class LocalEnvironmentVariables extends EnvironmentVariables {

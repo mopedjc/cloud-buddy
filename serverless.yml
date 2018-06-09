@@ -1,14 +1,4 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.  # It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
+
 
 service:
   name: cloud-buddy
@@ -42,7 +32,7 @@ functions:
     events:
       - sns: needs-attention
   failedalerts:
-    handler: com.serverless.EchoSNS
+    handler: com.cloudsecurity.lambda.EchoSNS
     timeout: 30
     events:
       - sns: failed-alerts
@@ -53,20 +43,34 @@ functions:
       - sns: failed-alerts
     environment:
       TARGET_S3_BUCKET: ${file(./config.yml):s3_failed_alerts_bucket}
-  securityfailures:
-    handler: com.cloudsecurity.lambda.LookSecurityFailures
+  securityUsingSNS:
+    handler: com.cloudsecurity.lambda.SecurityUsingSNS
     timeout: 30
     events:
       - sns: needs-attention
     environment:
       TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
       BUDDY_ACCOUNT_ID: ${file(./config.yml):BUDDY_ACCOUNT_ID}
-  executeRule:
-    handler: com.cloudsecurity.lambda.ondemand.ExecuteRule
+  executeSNSRule:
+    handler: com.cloudsecurity.lambda.ondemand.ExecuteSNSRule
     timeout: 30
     events:
       - http:
-          path: executeRule/{rule}
+          path: executeSNSRule/{rule}
+          method: post
+          request:
+            parameters:
+              paths:
+                rule: true
+    environment:
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
+      BUDDY_ACCOUNT_ID: ${file(./config.yml):BUDDY_ACCOUNT_ID}
+  executeSDKRule:
+    handler: com.cloudsecurity.lambda.ondemand.ExecuteSDKRule
+    timeout: 30
+    events:
+      - http:
+          path: executeSDKRule/{rule}
           method: get
           request:
             parameters:

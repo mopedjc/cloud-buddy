@@ -5,7 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler
 import com.amazonaws.services.lambda.runtime.events.SNSEvent
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.cloudsecurity.rules.Result
+import com.cloudsecurity.dsl.Alert
 import groovy.json.JsonSlurper
 
 class DumpToS3Bucket implements RequestHandler<SNSEvent, Void> {
@@ -20,9 +20,8 @@ class DumpToS3Bucket implements RequestHandler<SNSEvent, Void> {
     for (SNSEvent.SNSRecord next: input.getRecords()) {
       println("Accepted raw sns : " + next.SNS.message)
       JsonSlurper slurper = new JsonSlurper()
-      Result alert = slurper.parseText(next.SNS.message)
-      s3Client.putObject(bucket, "${alert.region}/${alert.name}/${alert.resource}.json", alert.toJson())
-
+      Alert alert = slurper.parseText(next.SNS.message)
+      s3Client.putObject(bucket, "region=${alert.region}/alert=${alert.name}/resource=${alert.resource}/${alert.resource}.json", alert.toJson())
     }
   }
 
