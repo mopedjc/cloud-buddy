@@ -26,7 +26,7 @@ class EchoSNSTest extends spock.lang.Specification {
     "id": "48f4be3d-44e2-f91e-d44c-f98ffb45bfaf",
     "detail-type": "AWS API Call via CloudTrail",
     "source": "aws.iam",
-    "account": "864374811737",
+    "account": "012345678901",
     "time": "2018-04-28T19:00:41Z",
     "region": "us-east-1",
     "resources": [],
@@ -35,8 +35,8 @@ class EchoSNSTest extends spock.lang.Specification {
         "userIdentity": {
             "type": "IAMUser",
             "principalId": "AIDAI43GIBMCOUZRFCU7U",
-            "arn": "arn:aws:iam::864374811737:user/johndoe",
-            "accountId": "864374811737",
+            "arn": "arn:aws:iam::012345678901:user/johndoe",
+            "accountId": "012345678901",
             "accessKeyId": "ASIAJ2LLME7WRWGKSYWQ",
             "userName": "johndoe",
             "sessionContext": {
@@ -59,7 +59,7 @@ class EchoSNSTest extends spock.lang.Specification {
         "responseElements": {
             "user": {
                 "path": "/",
-                "arn": "arn:aws:iam::864374811737:user/johndoeuser6",
+                "arn": "arn:aws:iam::012345678901:user/johndoeuser6",
                 "userId": "AIDAIYIYNWW2G7FGS2RZ4",
                 "createDate": "Apr 28, 2018 7:00:41 PM",
                 "userName": "johndoeuser6"

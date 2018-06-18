@@ -2,10 +2,10 @@ package com.cloudsecurity.lambda.ondemand
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
-import com.cloudsecurity.rules.Result
-import com.secops.usingdsl.AlwaysFail
-import com.secops.usingdsl.AlwaysFail3
-import com.secops.usingdsl.AlwaysPass
+import com.cloudsecurity.dsl.Alert
+import com.cloudsecurity.dsl.usingdsl.AlwaysFail
+import com.cloudsecurity.dsl.usingdsl.AlwaysFail3
+import com.cloudsecurity.dsl.usingdsl.AlwaysPass
 
 class ExecuteDSLRule implements RequestHandler<Map<String, Object>, ApiGatewayResponse> {
   String region = System.getenv('AWS_DEFAULT_REGION')
@@ -22,7 +22,7 @@ class ExecuteDSLRule implements RequestHandler<Map<String, Object>, ApiGatewayRe
 
     def matchedRule = rulesMap.find { it.name == rule }
     boolean isFailed = matchedRule.isFail()
-    Result result = new Result()
+    Alert result = new Alert()
     result.with {
       name = matchedRule.rule.name
       eventTime = Date.newInstance().toString()

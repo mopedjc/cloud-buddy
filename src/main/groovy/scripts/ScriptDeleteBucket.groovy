@@ -1,6 +1,6 @@
 package scripts
 
-import com.cloudsecurity.rules.S3BucketGlobalDelete
+import com.cloudsecurity.rules.sdk.S3BucketGlobalDelete
 
 S3BucketGlobalDelete s3BucketGlobalDelete = new S3BucketGlobalDelete(LocalAWSClientFactory.instance)
 s3BucketGlobalDelete.environmentVariables = new LocalEnvironmentVariables()

@@ -2,7 +2,7 @@ package scripts
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.secops.util.AWSClientFactory
+import com.cloudsecurity.dsl.util.AWSClientFactory
 
 @Singleton
 class LocalAWSClientFactory extends AWSClientFactory {
