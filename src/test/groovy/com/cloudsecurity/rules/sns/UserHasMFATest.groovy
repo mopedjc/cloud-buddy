@@ -1,6 +1,5 @@
 package com.cloudsecurity.rules.sns
 
-import com.cloudsecurity.rules.sns.UserHasMFA
 import spock.lang.Specification
 
 class UserHasMFATest extends Specification {

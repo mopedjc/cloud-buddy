@@ -3,7 +3,7 @@ package com.cloudsecurity.rules.sns
 import com.cloudsecurity.dsl.FilterSNS
 import org.jetbrains.annotations.NotNull
 
-trait UserHasMFASNSFilter implements FilterSNS {
+class UserHasMFAFilterSNS implements FilterSNS {
 
     @Override
     String getResource(@NotNull Map<String, ?> sns) {

@@ -11,16 +11,19 @@ data class Alert(
 
     var region: String? = null,
 
-    var eventTime: String? = null,
-    var eventName: String? = null,
     var details: MutableMap<String, Any> = mutableMapOf()
 ) {
     fun toJson() :String {
 
         return JsonOutput.toJson(
                 mapOf("name" to name, "fail" to fail, "message" to message, "region" to region,
-                        "resource" to resource, "eventTime" to eventTime, "eventName" to eventName,
+                        "resource" to resource,
                         "details" to details))
+    }
+
+    fun withDetails(map: Map<String, Any>) : Alert {
+        details.putAll(map)
+        return this
     }
 }
 

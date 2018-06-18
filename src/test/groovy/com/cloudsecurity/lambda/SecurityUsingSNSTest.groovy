@@ -12,7 +12,7 @@ class SecurityUsingSNSTest extends Specification {
 //		Context context = Mock()
 //		context.invokedFunctionArn >> "arn:aws:lambda:us-east-1:012345678901:function:aws-groovy-gradle-serverless-dev-echosns"
 //		event.records = [new SNSEvent.SNSRecord(sns: new SNSEvent.SNS(message: message1))]
-//		lambda.userHasMFA = Mock(UserHasMFASDKRule)
+//		lambda.userHasMFA = Mock(UserHasMFA)
 //
 //		AmazonIdentityManagementClient identityManagementClient =  Mock(AmazonIdentityManagementClient)
 //		lambda.userHasMFA.getIdentityManagementClient() >>

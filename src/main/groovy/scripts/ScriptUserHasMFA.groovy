@@ -1,8 +1,8 @@
 package scripts
 
-import com.cloudsecurity.rules.sdk.UserHasMFASDKRule
+import com.cloudsecurity.rules.sdk.UserHasMFA
 
-UserHasMFASDKRule hasMFA = new UserHasMFASDKRule(LocalAWSClientFactory.instance)
-hasMFA.environmentVariables = new LocalEnvironmentVariables()
+UserHasMFA hasMFA = new UserHasMFA(clientFactory: LocalAWSClientFactory.instance)
+hasMFA.region = 'test-region'
 
 println hasMFA.isFail("johndoe")

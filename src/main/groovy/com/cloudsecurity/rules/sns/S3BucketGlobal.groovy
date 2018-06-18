@@ -4,27 +4,27 @@ import com.cloudsecurity.dsl.Alert
 import com.cloudsecurity.dsl.UsingSNS
 import org.jetbrains.annotations.NotNull
 
-class S3BucketGlobal implements UsingSNS, FillDetailsTrait, S3BucketGlobalSNSFilter {
+class S3BucketGlobal extends S3BucketGlobalFilterSNS implements UsingSNS, FillDetailsTrait {
 
   @Override
   Alert isFail(@NotNull String snsString) {
     Map<String,?> sns = snsStringToMap(snsString)
 
     def snsDetails = sns.detail
-    def resource = getResource(snsDetails)
+    def resource = getResource(sns)
     def eventName = snsDetails?.eventName
     def region = snsDetails?.awsRegion
     def bucketPolicy = snsDetails?.requestParameters?.bucketPolicy
 
     if (eventName in ["PutBucketPolicy"] && isPublic(bucketPolicy)) {
-      return fillDetails(new Alert(name: name, resource: resource, fail: true, eventName: eventName,
+      return fillDetails(new Alert(name: name, resource: resource, fail: true,
               message: "$resource has a public bucket policy", region: region), sns)
     }
 
     if (eventName in ["DeleteBucketPolicy"] || bucketPolicy == "") {
-      return fillDetails(new Alert(name: name, resource: resource, fail: false, eventName: eventName, message: "$resource has no policy", region: region), sns)
+      return fillDetails(new Alert(name: name, resource: resource, fail: false, message: "$resource has no policy", region: region), sns)
     }
-    return fillDetails(new Alert(name: name, resource: resource, fail: false, eventName: eventName,
+    return fillDetails(new Alert(name: name, resource: resource, fail: false,
             message: "$resource has policy but is not public", region: region), sns)
   }
 
@@ -37,7 +37,7 @@ class S3BucketGlobal implements UsingSNS, FillDetailsTrait, S3BucketGlobalSNSFil
 
   @Override
   String getName() {
-    return this.class.name
+    return 'S3BucketGlobal'
   }
 
 }

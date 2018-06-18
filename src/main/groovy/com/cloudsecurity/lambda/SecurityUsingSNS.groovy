@@ -8,6 +8,7 @@ import com.amazonaws.services.sns.AmazonSNSClient
 import com.cloudsecurity.dsl.Alert
 import com.cloudsecurity.dsl.UsingSNS
 import com.cloudsecurity.rules.sns.ImagePublic
+import com.cloudsecurity.rules.sns.S3BucketGlobal
 import com.cloudsecurity.rules.sns.SecurityGroupIngress
 import com.cloudsecurity.rules.sns.UserHasMFA
 import com.jayway.jsonpath.JsonPath
@@ -18,14 +19,15 @@ class SecurityUsingSNS implements RequestHandler<SNSEvent, String> {
 	SecurityGroupIngress securityGroupIngressOpen22 = new SecurityGroupIngress()
 	UserHasMFA userHasMFA = new UserHasMFA()
 
-	List<UsingSNS> rules = [securityGroupIngressOpen22, userHasMFA, new ImagePublic()]
+	List<UsingSNS> rules = [securityGroupIngressOpen22, userHasMFA, new ImagePublic(), new S3BucketGlobal()]
 
 	@Override
 	String handleRequest(SNSEvent input, Context context) {
 		String accountId = context.invokedFunctionArn.split(":")[4]
 		String region = context.invokedFunctionArn.split(":")[3]
-		String topicARN = generateAlertTopicARN(accountId, region)
-		println("version 1.1")
+		String failedAlertsTopicARN = generateFailedAlertsTopicARN(accountId, region)
+		String passedAlertsTopicARN = generatePassedAlertsTopicARN(accountId, region)
+		println("version 1.12")
 
 		println("functionArn: ${context.invokedFunctionArn}")
 		println("in defaultRegion: ${defaultRegion}, accountId: " + accountId + ", SNSEvent : " + input.toString())
@@ -36,18 +38,23 @@ class SecurityUsingSNS implements RequestHandler<SNSEvent, String> {
 			String eventName = JsonPath.read(next.SNS.message, '$.detail.eventName')
 			rules.findAll{ it.isRelevant(eventName) }.each {
 				Alert result = it.isFail(next.SNS.message)
-//				if (result.fail) {
-				// TODO create a passed-alerts SNS topic
-					snsClient.publish(topicARN, result.toJson())
-//				}
+				if (result.fail) {
+					snsClient.publish(failedAlertsTopicARN, result.toJson())
+				} else {
+					snsClient.publish(passedAlertsTopicARN, result.toJson())
+				}
 			}
 		}
 
 		ret.toString()
 	}
 
-	def generateAlertTopicARN(String accountId, String region) {
+	def generateFailedAlertsTopicARN(String accountId, String region) {
 		"arn:aws:sns:${region}:${accountId}:failed-alerts"
+	}
+
+	def generatePassedAlertsTopicARN(String accountId, String region) {
+		"arn:aws:sns:${region}:${accountId}:passed-alerts"
 	}
 
 	AmazonSNSClient snsClient = AmazonSNSAsyncClientBuilder.standard().build()

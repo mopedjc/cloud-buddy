@@ -3,7 +3,7 @@ package com.cloudsecurity.rules.sns
 import com.cloudsecurity.dsl.FilterSNS
 import org.jetbrains.annotations.NotNull
 
-trait S3BucketGlobalSNSFilter implements FilterSNS {
+class S3BucketGlobalFilterSNS implements FilterSNS {
 
     @Override
     String getResource(@NotNull Map<String, ?> sns) {

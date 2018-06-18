@@ -34,6 +34,8 @@ class VerifyPasswordPolicyChange : UsingSNS {
 //        result?.details["eventType"] = sns?.detail?.eventType
 //        result?.details["eventTime"] = sns?.detail?.eventTime
 //        result?.details["sourceIPAddress"] = sns?.detail?.sourceIPAddress
+
+
 //        result?.details["userAgent"] = sns?.detail?.userAgent
         return result
     }

@@ -13,6 +13,7 @@ provider:
   name: aws
   runtime: java8
   role: buddySecurityRole
+  timeout: 30
 
 # you can overwrite defaults here
 #  stage: dev
@@ -28,24 +29,30 @@ package:
 functions:
   echosns:
     handler: com.cloudsecurity.lambda.EchoSNS
-    timeout: 30
     events:
       - sns: needs-attention
-  failedalerts:
+  echoFailedAlerts:
     handler: com.cloudsecurity.lambda.EchoSNS
-    timeout: 30
     events:
       - sns: failed-alerts
-  dumptos3:
+  echoPassedAlerts:
+    handler: com.cloudsecurity.lambda.EchoSNS
+    events:
+      - sns: passed-alerts
+  dumpFailedAlertsToS3:
     handler: com.cloudsecurity.lambda.DumpToS3Bucket
-    timeout: 30
     events:
       - sns: failed-alerts
     environment:
       TARGET_S3_BUCKET: ${file(./config.yml):s3_failed_alerts_bucket}
+  dumpIngestedResourcesToS3:
+    handler: com.cloudsecurity.lambda.DumpToS3Bucket
+    events:
+      - sns: ingested-resources
+    environment:
+      TARGET_S3_BUCKET: ${file(./config.yml):s3_ingested_resources_bucket}
   securityUsingSNS:
     handler: com.cloudsecurity.lambda.SecurityUsingSNS
-    timeout: 30
     events:
       - sns: needs-attention
     environment:
@@ -53,7 +60,6 @@ functions:
       BUDDY_ACCOUNT_ID: ${file(./config.yml):BUDDY_ACCOUNT_ID}
   executeSNSRule:
     handler: com.cloudsecurity.lambda.ondemand.ExecuteSNSRule
-    timeout: 30
     events:
       - http:
           path: executeSNSRule/{rule}
@@ -67,23 +73,15 @@ functions:
       BUDDY_ACCOUNT_ID: ${file(./config.yml):BUDDY_ACCOUNT_ID}
   executeSDKRule:
     handler: com.cloudsecurity.lambda.ondemand.ExecuteSDKRule
-    timeout: 30
     events:
       - http:
           path: executeSDKRule/{rule}
           method: get
-          request:
-            parameters:
-              paths:
-                rule: true
-              querystrings:
-                resource: true
     environment:
       TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
       BUDDY_ACCOUNT_ID: ${file(./config.yml):BUDDY_ACCOUNT_ID}
   executeDSLRule:
     handler: com.cloudsecurity.lambda.ondemand.ExecuteDSLRule
-    timeout: 30
     events:
       - http:
           path: executeDSLRule/{rule}
@@ -97,6 +95,17 @@ functions:
     environment:
       TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
       BUDDY_ACCOUNT_ID: ${file(./config.yml):BUDDY_ACCOUNT_ID}
+  ingestAccount:
+    handler: com.cloudsecurity.lambda.ondemand.IngestAccount
+    timeout: 300
+    events:
+      - http:
+          path: ingestAccount
+          method: get
+          authorizer: aws_iam
+    environment:
+      TARGET_ACCOUNT_ROLE: arn:aws:iam::${file(./config.yml):ACCOUNT_ID}:role/ForCloudBuddySecurityAuditRole
+      BUDDY_ACCOUNT_ID: ${file(./config.yml):BUDDY_ACCOUNT_ID}
 
 
 # you can add CloudFormation resource templates here
@@ -106,6 +115,10 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${file(./config.yml):s3_failed_alerts_bucket}
+    ingestedResourcesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${file(./config.yml):s3_ingested_resources_bucket}
     buddySecurityRole:
       Type: AWS::IAM::Role
       Properties:
@@ -142,3 +155,16 @@ resources:
                     - "s3:*"
                   Resource:
                     -  "arn:aws:s3:::${file(./config.yml):s3_failed_alerts_bucket}/*"
+          - PolicyName: writeIngestedResources
+            PolicyDocument:
+              Statement:
+                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
+                  Action:
+                    - "s3:*"
+                  Resource:
+                    -  "arn:aws:s3:::${file(./config.yml):s3_ingested_resources_bucket}"
+                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
+                  Action:
+                    - "s3:*"
+                  Resource:
+                    -  "arn:aws:s3:::${file(./config.yml):s3_ingested_resources_bucket}/*"

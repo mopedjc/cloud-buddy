@@ -10,6 +10,8 @@ fun main(args : Array<String>) {
         System.exit(0)
     }
     oneclickCreateBuddyAccount()
+    val parameters: Parameters = loadParametersFromFile(Paths.get(parametersFile))
+    recreateConfigFromBuddyEmail(parameters.buddyEmail, getAccountIdFromAWS().toLong())
     oneclickDeployServerless()
     oneclickFinalTouchesToBuddyAccount()
     oneclickRunCloudFormation()
