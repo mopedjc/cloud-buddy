@@ -20,14 +20,35 @@ import java.nio.file.Paths
 
 fun main(args : Array<String>) {
     oneclickCreateBuddyAccount()
+    val parameters: Parameters = loadParametersFromFile(Paths.get(parametersFile))
+
+    recreateConfigFromBuddyEmail(parameters.buddyEmail, getAccountIdFromAWS().toLong())
+}
+
+fun recreateConfigFromBuddyEmail(email: String, accountId: Long): Config {
+    val parameters = loadParametersFromFile(Paths.get(parametersFile))
+    val accounts = listAllAccounts()
+
+    val buddyAccount = accounts.find {
+        it.email == parameters.buddyEmail
+    }
+    val cloudtrailsBucket = "${generateAccountAliasFromEmail(parameters.buddyEmail)}-cloudtrails"
+    val failedAlertsBucket = "${generateAccountAliasFromEmail(parameters.buddyEmail)}-failed-alerts"
+    val ingestedResourcesBucket = "${generateAccountAliasFromEmail(parameters.buddyEmail)}-ingested-resources"
+
+    val config = Config(buddyAccountId = buddyAccount?.id?.toLong(), buddyEmail = parameters.buddyEmail,
+            cloudtrailsBucket = cloudtrailsBucket, s3FailedAlertsBucket = failedAlertsBucket,
+            s3IngestedResourcesBucket = ingestedResourcesBucket,
+            accountAlias = generateAccountAliasFromEmail(parameters.buddyEmail), accountId = accountId)
+    saveToFile(config)
+    return config
 }
 
 fun doesBuddyAccountExists() : Boolean {
     val configFilePath = Paths.get(configFile)
     if (Files.exists(configFilePath)) {
-        val config: Config = loadConfigFromFile(Paths.get(configFile))
         val parameters = loadParametersFromFile(Paths.get(parametersFile))
-        if (config.buddyEmail == parameters.buddyEmail) {
+        if (parameters.buddyEmail != "") {
             val accounts = listAllAccounts()
             // TODO figure out this
 //            return accounts.any {
@@ -35,7 +56,7 @@ fun doesBuddyAccountExists() : Boolean {
 //            }
 
             return accounts.any {
-                it.id == config.accountId.toString()
+                it.email == parameters.buddyEmail
             }
         } else {
             return false
@@ -65,10 +86,8 @@ fun oneclickCreateBuddyAccount() {
         return
     }
     val buddyAccountId = createAccount(parameters.buddyEmail)
-    val cloudtrailsBucket = "${generateAccountAliasFromEmail(parameters.buddyEmail)}-cloudtrails"
-    val failedAlertsBucket = "${generateAccountAliasFromEmail(parameters.buddyEmail)}-failed-alerts"
-    val config = Config(buddyAccountId.toLong(), getAccountAliasFromAWS(), parameters.buddyEmail, cloudtrailsBucket,failedAlertsBucket, getAccountIdFromAWS().toLong())
-    saveToFile(config)
+    // val config = Config(buddyAccountId.toLong(), getAccountAliasFromAWS(), parameters.buddyEmail, cloudtrailsBucket,failedAlertsBucket, getAccountIdFromAWS().toLong())
+   // saveToFile(config)
 }
 
 fun putPermissionsOnEventBus(buddyAccountId: Long?) {

@@ -1,6 +1,6 @@
 package com.cloudsecurity.dsl
 
-interface UsingSDK {
-    fun isFail(resource : String? = null) : Alert
+interface UsingSDK<ResourceType> {
+    fun isFail(resource : ResourceType? = null) : Alert
     fun getName() :String
 }

@@ -38,7 +38,7 @@ dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 	compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-	compile 'com.amazonaws:aws-java-sdk:1.11.341'
+	compile 'com.amazonaws:aws-java-sdk:1.11.354'
 	compile group: 'org.springframework.retry', name: 'spring-retry', version: '1.0.3.RELEASE'
 	compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
 	compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5'

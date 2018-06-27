@@ -2,22 +2,15 @@ package com.cloudsecurity.rules.sdk
 
 import com.cloudsecurity.dsl.Alert
 import com.cloudsecurity.dsl.UsingSDK
-import com.cloudsecurity.dsl.util.AWSClientFactory
-import com.cloudsecurity.dsl.util.EnvironmentVariables
+import com.cloudsecurity.dsl.util.AbstractUsingSDK
 
-class RootUserHasMFA implements UsingSDK {
-    @Delegate AWSClientFactory clientFactory
-    EnvironmentVariables environmentVariables = new EnvironmentVariables()
-
-    RootUserHasMFA(AWSClientFactory clientFactory = STSAssumeRoleClientFactory.instance) {
-        this.clientFactory = clientFactory
-    }
+class RootUserHasMFA extends AbstractUsingSDK implements UsingSDK<String> {
+    String region = System.getenv('AWS_DEFAULT_REGION')
 
     @Override
     Alert isFail(String resource) {
         int count = identityManagementClient.accountSummary.summaryMap['AccountMFAEnabled']
         boolean pass = count > 0
-        String region = environmentVariables.getenv('AWS_DEFAULT_REGION')
         if (!pass) {
             return new Alert(name: name, resource: 'rootUser', fail: true, message: "rootUser does not have MFA", region: region)
         } else {
@@ -27,7 +20,7 @@ class RootUserHasMFA implements UsingSDK {
 
     @Override
     String getName() {
-        'RootUserHasMFA'  // can't use this.class.typeName as unit test fails, with Mock com.cloudsecurity.rules.sdk.UserHasMFASDKRule$$EnhancerByCGLIB$$1db4124
+        'RootUserHasMFA'  // can't use this.class.typeName as unit test fails, with Mock com.cloudsecurity.rules.sdk.UserHasMFA$$EnhancerByCGLIB$$1db4124
     }
 
 

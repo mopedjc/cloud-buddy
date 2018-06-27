@@ -2,11 +2,10 @@ package com.cloudsecurity.rules.sns
 
 import com.cloudsecurity.dsl.Alert
 import com.cloudsecurity.dsl.UsingSNS
-import com.cloudsecurity.dsl.util.EnvironmentVariables
 import org.jetbrains.annotations.NotNull
 
-class UserHasMFA implements UsingSNS, FillDetailsTrait, UserHasMFASNSFilter {
-  EnvironmentVariables environmentVariables = new EnvironmentVariables()
+class UserHasMFA extends UserHasMFAFilterSNS implements UsingSNS, FillDetailsTrait {
+  String region = System.getenv('AWS_DEFAULT_REGION')
 
   @Override
   String getName() {
@@ -23,10 +22,9 @@ class UserHasMFA implements UsingSNS, FillDetailsTrait, UserHasMFASNSFilter {
     def region = snsDetails?.awsRegion
     if (eventName in ["EnableMFADevice"]) {
       return fillDetails(new Alert(name: name, resource: resource, fail: false,
-              eventName: eventName,
               message: "$resource has MFA", region: region), sns)
     } else {
-      return fillDetails(new Alert(name: name, resource: resource, fail: true, eventName: eventName,
+      return fillDetails(new Alert(name: name, resource: resource, fail: true,
               message: "$resource does not have MFA", region: region), sns)
     }
   }

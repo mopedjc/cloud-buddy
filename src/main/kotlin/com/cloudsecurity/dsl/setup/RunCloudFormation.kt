@@ -8,7 +8,7 @@ import com.amazonaws.services.cloudformation.model.*
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest
 import com.amazonaws.waiters.WaiterParameters
-import com.cloudsecurity.dsl.util.EnvironmentVariables
+import com.cloudsecurity.dsl.Alert
 
 
 fun main(args: Array<String>) {
@@ -23,7 +23,7 @@ fun oneclickRunCloudFormation() {
 }
 
 fun String.asResource(work: (String) -> Unit) {
-    val content = EnvironmentVariables().javaClass.classLoader.getResource(this).readText()
+    val content = Alert().javaClass.classLoader.getResource(this).readText()
     work(content)
 }
 

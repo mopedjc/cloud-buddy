@@ -8,28 +8,13 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientB
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 
-abstract class AWSClientFactory {
-    abstract fun getCredentialsProvider() : AWSCredentialsProvider
-    val environmentVariables : EnvironmentVariables = EnvironmentVariables()
-//
-    val ec2Client: AmazonEC2 by lazy {
-        CachingAmazonEC2(AmazonEC2ClientBuilder
-            .standard()
-            .withCredentials(getCredentialsProvider())
-            .build()) as AmazonEC2
-    }
+interface AWSClientFactory {
+    fun getCredentialsProvider() : AWSCredentialsProvider?
 
-    val s3Client: AmazonS3 by lazy {
-        CachingAmazonS3(AmazonS3ClientBuilder
-                .standard()
-                .withCredentials(getCredentialsProvider())
-                .withForceGlobalBucketAccessEnabled(true).build())
-    }
+    val ec2Client: AmazonEC2
 
-    val identityManagementClient: AmazonIdentityManagement? by lazy {
-        CachingAmazonIdentityManagement(AmazonIdentityManagementClientBuilder
-                .standard()
-                .withCredentials(getCredentialsProvider()).build())
-    }
+    val s3Client: AmazonS3
+
+    val identityManagementClient: AmazonIdentityManagement?
 
 }

@@ -7,4 +7,5 @@ data class Config(@JsonProperty("BUDDY_ACCOUNT_ID") var buddyAccountId: Long?,
                   var buddyEmail: String,
                   val cloudtrailsBucket: String,
                   @JsonProperty("s3_failed_alerts_bucket") val s3FailedAlertsBucket: String,
+                  @JsonProperty("s3_ingested_resources_bucket") val s3IngestedResourcesBucket: String,
                   @JsonProperty("ACCOUNT_ID") var accountId: Long?)

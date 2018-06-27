@@ -29,7 +29,7 @@ class SecurityGroupIngress implements UsingSNS, FillDetailsTrait {
 		def requestParameters = snsDetails?.requestParameters;
 		def ipPermissions = requestParameters?.ipPermissions
 		List ipPermissionsItems = ipPermissions?.items
-		Alert result = new Alert(resource: resource, eventName: eventName, region: region)
+		Alert result = new Alert(resource: resource, region: region)
 		boolean openOnPort = ipPermissionsItems.any {
 			item ->
 				def ipv6Items = item.ipv6Ranges.items

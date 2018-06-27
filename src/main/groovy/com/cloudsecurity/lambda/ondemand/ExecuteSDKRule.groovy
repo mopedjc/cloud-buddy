@@ -11,11 +11,11 @@ import com.cloudsecurity.rules.sdk.S3BucketGlobalDelete
 import com.cloudsecurity.rules.sdk.S3BucketGlobalGet
 import com.cloudsecurity.rules.sdk.S3BucketGlobalList
 import com.cloudsecurity.rules.sdk.S3BucketGlobalPut
-import com.cloudsecurity.rules.sdk.UserHasMFASDKRule
+import com.cloudsecurity.rules.sdk.UserHasMFA
 
 class ExecuteSDKRule implements RequestHandler<Map<String, Object>, ApiGatewayResponse> {
   String region = System.getenv('AWS_DEFAULT_REGION')
-  UserHasMFASDKRule userHasMFA = new UserHasMFASDKRule()
+  UserHasMFA userHasMFA = new UserHasMFA()
   S3BucketGlobalDelete s3BucketGlobalDelete = new S3BucketGlobalDelete()
   S3BucketGlobalGet s3BucketGlobalGet = new S3BucketGlobalGet()
   S3BucketGlobalList s3BucketGlobalList = new S3BucketGlobalList()
@@ -32,7 +32,7 @@ class ExecuteSDKRule implements RequestHandler<Map<String, Object>, ApiGatewayRe
     Map pathParameters = input.get('pathParameters')
     println("pathParameters is ${pathParameters}")
     String rule = pathParameters.get('rule')
-    println("rule is ${rule.class}")
+    println("rulesMap is ${rulesMap}")
 
     def matchedRule = rulesMap.find { it.name == rule }
 

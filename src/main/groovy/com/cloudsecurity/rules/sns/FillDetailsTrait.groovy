@@ -10,6 +10,7 @@ trait FillDetailsTrait  {
 		result.details['whoDidItArn'] = sns?.detail?.userIdentity?.arn
 		result.details['eventID'] = sns?.detail?.eventID
 		result.details['eventType'] = sns?.detail?.eventType
+		result.details['eventName'] = sns?.detail?.eventName
 		result.details['eventTime'] = sns?.detail?.eventTime
 		result.details['sourceIPAddress'] = sns?.detail?.sourceIPAddress
 		result.details['userAgent'] = sns?.detail?.userAgent
